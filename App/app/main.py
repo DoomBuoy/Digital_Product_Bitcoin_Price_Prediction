@@ -38,7 +38,7 @@ def main():
     if st.session_state.page == "landing":
         landing_page()
     elif st.session_state.page == "crypto_detail":
-        # Route to specific crypto pages based on selected crypto
+        # Route to Bitcoin detail page
         if 'selected_crypto' in st.session_state:
             crypto_id = st.session_state.selected_crypto['id']
             if crypto_id == 'bitcoin':

@@ -1,1 +1,1 @@
-# Coin package init file
+# Students package init file

@@ -1,6 +1,6 @@
 FROM python:3.11.4-slim
 
-LABEL authors="vaibhavghaisas"
+LABEL authors="AgamSinghSaini"
 
 WORKDIR /app
 

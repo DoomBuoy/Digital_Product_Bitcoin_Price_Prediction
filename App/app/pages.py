@@ -36,7 +36,7 @@ def landing_page():
         crypto_data = get_crypto_data()
     
     # Display crypto overview
-    st.subheader("📊 Bitcoin")
+    st.markdown('<h3 style="color: white;">📊 Bitcoin</h3>', unsafe_allow_html=True)
     
     # Create columns for metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -56,7 +56,7 @@ def landing_page():
         st.metric("Last Updated", datetime.now().strftime("%H:%M:%S"))
     
     # Crypto selection
-    st.subheader("🎯 Select Bitcoin")
+    st.markdown('<h3 style="color: white;">🎯 Select Bitcoin</h3>', unsafe_allow_html=True)
     
     if crypto_data:
         coin = crypto_data[0]
@@ -206,7 +206,7 @@ def crypto_detail_page():
     
     # Price chart
     st.markdown("---")
-    st.subheader("📈 Price History")
+    st.markdown('<h3 style="color: white;">📈 Price History</h3>', unsafe_allow_html=True)
     
     # Time period selector
     period = st.selectbox(
@@ -245,7 +245,7 @@ def crypto_detail_page():
     
     # Crypto information section
     st.markdown("---")
-    st.subheader("ℹ️ About " + crypto['name'])
+    st.markdown('<h3 style="color: white;">ℹ️ About ' + crypto['name'] + '</h3>', unsafe_allow_html=True)
     
     # Display information about each crypto
     crypto_info = {
@@ -275,7 +275,7 @@ def crypto_detail_page():
         with col1:
             st.markdown(f"""
             <div style="
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(0, 0, 0, 0.9);
                 padding: 1.5rem;
                 border-radius: 15px;
                 margin: 1rem 0;
@@ -284,7 +284,7 @@ def crypto_detail_page():
                 border-left: 4px solid {crypto['color']};
             ">
                 <h4 style="color: {crypto['color']}; margin-bottom: 1rem;">📖 Description</h4>
-                <p style="color: #2d3748; line-height: 1.6; font-size: 1rem;">
+                <p style="color: #e2e8f0; line-height: 1.6; font-size: 1rem;">
                     {info['description']}
                 </p>
             </div>
@@ -293,11 +293,11 @@ def crypto_detail_page():
         with col2:
             features_html = ""
             for feature in info['features']:
-                features_html += f'<li style="color: #4a5568; margin: 0.5rem 0; font-size: 1rem;">✨ {feature}</li>'
+                features_html += f'<li style="color: #e2e8f0; margin: 0.5rem 0; font-size: 1rem;">✨ {feature}</li>'
             
             st.markdown(f"""
             <div style="
-                background: rgba(255, 255, 255, 0.9);
+                background: rgba(0, 0, 0, 0.9);
                 padding: 1.5rem;
                 border-radius: 15px;
                 margin: 1rem 0;

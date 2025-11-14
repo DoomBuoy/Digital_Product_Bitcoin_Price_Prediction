@@ -15,12 +15,12 @@ A modern, interactive cryptocurrency dashboard built with Streamlit that allows 
 - Real-time theme application
 
 ### 📊 Crypto Dashboard
-- **Landing Page**: Overview of Bitcoin
-- **Real-time Data**: Live prices and 24h price changes for Bitcoin
-- **Market Metrics**: Market cap, volume, and rankings for Bitcoin
-- **Interactive Selection**: Click to view detailed Bitcoin information
+- **Landing Page**: Overview of top cryptocurrencies
+- **Real-time Data**: Live prices and 24h price changes
+- **Market Metrics**: Market cap, volume, and rankings
+- **Interactive Selection**: Click to view detailed crypto information
 
-### 🔍 Detailed Bitcoin Analysis
+### 🔍 Detailed Crypto Analysis
 - **Price History**: Interactive charts with multiple timeframes (7d, 30d, 90d, 1y)
 - **Key Statistics**: All-time high/low, circulating supply, max supply
 - **Market Data**: Volume, market cap, and market ranking

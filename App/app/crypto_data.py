@@ -17,7 +17,7 @@ MAIN_CRYPTOS = {
 
 @st.cache_data(ttl=300)  # Cache for 5 minutes
 def get_crypto_data():
-    """Get data for our four main cryptocurrencies"""
+    """Get data for our main cryptocurrency"""
     crypto_data = []
     
     # Try to get real data from CoinGecko

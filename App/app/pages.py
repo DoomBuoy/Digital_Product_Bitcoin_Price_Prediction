@@ -6,7 +6,7 @@ from crypto_data import get_crypto_data, get_price_history, MAIN_CRYPTOS
 from st_theme import show_callout
 
 def landing_page():
-    """Main landing page with Bitcoin"""
+    """Main landing page with our four cryptocurrencies"""
     
     st.markdown('<h1 class="main-header">🚀 Crypto Dashboard</h1>', unsafe_allow_html=True)
     
@@ -36,68 +36,75 @@ def landing_page():
         crypto_data = get_crypto_data()
     
     # Display crypto overview
-    st.subheader("📊 Bitcoin")
+    st.subheader("📊 Top 4 Cryptocurrencies")
     
     # Create columns for metrics
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        total_market_cap = crypto_data[0].get('market_cap', 0) if crypto_data else 0
-        st.metric("Market Cap", f"${total_market_cap/1e12:.2f}T")
+        total_market_cap = sum([coin.get('market_cap', 0) for coin in crypto_data])
+        st.metric("Total Market Cap", f"${total_market_cap/1e12:.2f}T")
     
     with col2:
-        avg_change = crypto_data[0].get('price_change_percentage_24h', 0) if crypto_data else 0
-        st.metric("24h Change", f"{avg_change:.2f}%")
+        avg_change = sum([coin.get('price_change_percentage_24h', 0) for coin in crypto_data]) / len(crypto_data)
+        st.metric("Avg 24h Change", f"{avg_change:.2f}%")
     
     with col3:
-        st.metric("Cryptocurrencies", "1")
+        st.metric("Cryptocurrencies", "4")
     
     with col4:
         st.metric("Last Updated", datetime.now().strftime("%H:%M:%S"))
     
-    # Crypto selection
-    st.subheader("🎯 Select Bitcoin")
+    # Crypto selection grid - 2x2 layout
+    st.subheader("🎯 Select a Cryptocurrency")
     
-    if crypto_data:
-        coin = crypto_data[0]
+    # Create a 2x2 grid
+    row1_col1, row1_col2 = st.columns(2)
+    row2_col1, row2_col2 = st.columns(2)
+    
+    cols = [row1_col1, row1_col2, row2_col1, row2_col2]
+    
+    for idx, coin in enumerate(crypto_data):
+        col = cols[idx]
         
-        # Create crypto card
-        price_change = coin.get('price_change_percentage_24h', 0)
-        change_color = "green" if price_change >= 0 else "red"
-        change_symbol = "↗️" if price_change >= 0 else "↘️"
-        
-        # Use the coin's actual color for the border and better styling
-        card_html = f"""
-        <div style="
-            background: rgba(255, 255, 255, 0.9);
-            padding: 1.5rem;
-            border-radius: 15px;
-            border-left: 6px solid {coin['color']};
-            margin: 1rem 0;
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s ease;
-        " onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
-            <h3 style="color: {coin['color']}; margin-bottom: 0.5rem;">
-                {coin['icon']} {coin['name']} ({coin['symbol']})
-            </h3>
-            <h4 style="color: #2d3748; font-weight: bold; margin: 0.5rem 0;">
-                ${coin.get('current_price', 0):,.2f}
-            </h4>
-            <p style="color: {change_color}; font-weight: bold; margin: 0.5rem 0;">
-                {change_symbol} {price_change:.2f}%
-            </p>
-            <p style="color: #4a5568; font-size: 0.9em; margin: 0;">
-                Market Cap: ${coin.get('market_cap', 0)/1e9:.1f}B
-            </p>
-        </div>
-        """
-        st.markdown(card_html, unsafe_allow_html=True)
-        
-        if st.button(f"View {coin['name']}", key=f"btn_{coin['id']}", use_container_width=True, type="primary"):
-            st.session_state.selected_crypto = coin
-            st.session_state.page = "crypto_detail"
-            st.rerun()
+        with col:
+            # Create crypto card
+            price_change = coin.get('price_change_percentage_24h', 0)
+            change_color = "green" if price_change >= 0 else "red"
+            change_symbol = "↗️" if price_change >= 0 else "↘️"
+            
+            # Use the coin's actual color for the border and better styling
+            card_html = f"""
+            <div style="
+                background: rgba(255, 255, 255, 0.9);
+                padding: 1.5rem;
+                border-radius: 15px;
+                border-left: 6px solid {coin['color']};
+                margin: 1rem 0;
+                box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+                backdrop-filter: blur(10px);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='translateY(-5px)'" onmouseout="this.style.transform='translateY(0)'">
+                <h3 style="color: {coin['color']}; margin-bottom: 0.5rem;">
+                    {coin['icon']} {coin['name']} ({coin['symbol']})
+                </h3>
+                <h4 style="color: #2d3748; font-weight: bold; margin: 0.5rem 0;">
+                    ${coin.get('current_price', 0):,.2f}
+                </h4>
+                <p style="color: {change_color}; font-weight: bold; margin: 0.5rem 0;">
+                    {change_symbol} {price_change:.2f}%
+                </p>
+                <p style="color: #4a5568; font-size: 0.9em; margin: 0;">
+                    Market Cap: ${coin.get('market_cap', 0)/1e9:.1f}B
+                </p>
+            </div>
+            """
+            st.markdown(card_html, unsafe_allow_html=True)
+            
+            if st.button(f"View {coin['name']}", key=f"btn_{coin['id']}", use_container_width=True, type="primary"):
+                st.session_state.selected_crypto = coin
+                st.session_state.page = "crypto_detail"
+                st.rerun()
 
 def crypto_detail_page():
     """Detailed page for selected cryptocurrency"""
@@ -142,18 +149,18 @@ def crypto_detail_page():
     with col4:
         st.metric("24h Change", f"{crypto.get('price_change_percentage_24h', 0):+.2f}%")
     
-    # Add Ethereum prediction section if ETH is selected
-    if crypto['symbol'] == 'ETH':
+    # Add Bitcoin prediction section if BTC is selected
+    if crypto['symbol'] == 'BTC':
         st.markdown("---")
-        st.subheader("🔮 Ethereum Price Prediction")
+        st.subheader("🔮 Bitcoin Price Prediction")
         
         col1, col2 = st.columns([2, 1])
         
         with col1:
             show_callout("""
-            **🤖 AI-Powered ETH Prediction Available!**
+            **🤖 AI-Powered BTC Prediction Available!**
             
-            Our machine learning model can predict Ethereum's next-day HIGH price using:
+            Our machine learning model can predict Bitcoin's next-day HIGH price using:
             - 📈 Price momentum analysis
             - 📊 Volume patterns  
             - 🔄 Technical indicators
@@ -252,18 +259,6 @@ def crypto_detail_page():
         'bitcoin': {
             'description': 'Bitcoin (BTC) is the world\'s first cryptocurrency, created by the pseudonymous Satoshi Nakamoto. It operates on a decentralized peer-to-peer network and serves as digital gold.',
             'features': ['Digital Gold', 'Store of Value', 'Peer-to-Peer', 'Limited Supply (21M)']
-        },
-        'ethereum': {
-            'description': 'Ethereum (ETH) is a decentralized platform that enables smart contracts and decentralized applications (DApps). It\'s the second-largest cryptocurrency by market cap.',
-            'features': ['Smart Contracts', 'DApps Platform', 'DeFi Ecosystem', 'NFT Marketplace']
-        },
-        'ripple': {
-            'description': 'XRP is a digital asset designed for payments and created by Ripple Labs. It aims to enable fast, low-cost international money transfers.',
-            'features': ['Fast Payments', 'Low Fees', 'Bank Partnerships', 'Cross-border Transfers']
-        },
-        'solana': {
-            'description': 'Solana (SOL) is a high-performance blockchain supporting crypto apps and marketplaces. Known for fast transactions and low fees.',
-            'features': ['High Speed', 'Low Fees', 'Web3 Apps', 'NFT Ecosystem']
         }
     }
     
@@ -326,7 +321,7 @@ def crypto_detail_page():
         market_cap = crypto.get('market_cap', 0)
         st.metric(
             "Market Cap Rank",
-            f"#{['bitcoin', 'ethereum', 'ripple', 'solana'].index(crypto['id']) + 1}",
+            "#1",
             help="Rank among our tracked cryptocurrencies"
         )
     

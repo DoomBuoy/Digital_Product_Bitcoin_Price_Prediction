@@ -36,7 +36,7 @@ def landing_page():
         crypto_data = get_crypto_data()
     
     # Display crypto overview
-    st.markdown('<h3 style="color: #1a1a1a;">📊 Bitcoin</h3>', unsafe_allow_html=True)
+    st.markdown('<h3>📊 Bitcoin</h3>', unsafe_allow_html=True)
     
     # Create columns for metrics
     col1, col2, col3, col4 = st.columns(4)
@@ -56,7 +56,7 @@ def landing_page():
         st.metric("Last Updated", datetime.now().strftime("%H:%M:%S"))
     
     # Crypto selection
-    st.markdown('<h3 style="color: #1a1a1a;">🎯 Select Bitcoin</h3>', unsafe_allow_html=True)
+    st.markdown('<h3>🎯 Select Bitcoin</h3>', unsafe_allow_html=True)
     
     if crypto_data:
         coin = crypto_data[0]
@@ -206,7 +206,7 @@ def crypto_detail_page():
     
     # Price chart
     st.markdown("---")
-    st.markdown('<h3 style="color: #1a1a1a;">📈 Price History</h3>', unsafe_allow_html=True)
+    st.markdown('<h3>📈 Price History</h3>', unsafe_allow_html=True)
     
     # Time period selector
     period = st.selectbox(
@@ -245,7 +245,7 @@ def crypto_detail_page():
     
     # Crypto information section
     st.markdown("---")
-    st.markdown('<h3 style="color: #1a1a1a;">ℹ️ About ' + crypto['name'] + '</h3>', unsafe_allow_html=True)
+    st.markdown('<h3>ℹ️ About ' + crypto['name'] + '</h3>', unsafe_allow_html=True)
     
     # Display information about each crypto
     crypto_info = {

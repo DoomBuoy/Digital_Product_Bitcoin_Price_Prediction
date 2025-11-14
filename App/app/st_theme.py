@@ -212,7 +212,7 @@ def apply_crypto_theme():
     [data-testid="stMetric"], div[data-testid="stExpander"] {
         box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         border-radius: 12px;
-        background: rgba(255, 255, 255, 0.8);
+        background: transparent;
         padding: 8px;
     }
 

@@ -191,20 +191,20 @@ def apply_crypto_theme():
     /* Beautiful background */
     .stApp {
       background:
-        radial-gradient(50rem 35rem at 10% 20%, rgba(255, 175, 100, 0.45) 0%, transparent 70%),
-        radial-gradient(45rem 30rem at 85% 15%, rgba(90, 180, 255, 0.40) 0%, transparent 70%),
-        radial-gradient(55rem 40rem at 50% 80%, rgba(255, 230, 180, 0.35) 0%, transparent 75%),
-        linear-gradient(120deg, #fdf6f0 0%, #eaf4ff 50%, #f8f9ff 100%);
+        radial-gradient(50rem 35rem at 10% 20%, rgba(100, 100, 100, 0.45) 0%, transparent 70%),
+        radial-gradient(45rem 30rem at 85% 15%, rgba(50, 50, 50, 0.40) 0%, transparent 70%),
+        radial-gradient(55rem 40rem at 50% 80%, rgba(80, 80, 80, 0.35) 0%, transparent 75%),
+        linear-gradient(120deg, #2d2d2d 0%, #1a1a1a 50%, #0f0f0f 100%);
       background-attachment: fixed;
-      color: #1a1a1a;
+      color: #ffffff;
     }
 
     /* 🧊 Sidebar frosted panel */
     [data-testid="stSidebar"] > div:first-child {
-      background: rgba(255, 255, 255, 0.45);
+      background: rgba(0, 0, 0, 0.45);
       backdrop-filter: blur(14px) saturate(180%);
       -webkit-backdrop-filter: blur(14px) saturate(180%);
-      border-right: 1px solid rgba(255, 255, 255, 0.25);
+      border-right: 1px solid rgba(0, 0, 0, 0.25);
       box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
     }
 
@@ -212,14 +212,14 @@ def apply_crypto_theme():
     [data-testid="stMetric"], div[data-testid="stExpander"] {
         box-shadow: 0 6px 16px rgba(0,0,0,0.12);
         border-radius: 12px;
-        background: transparent;
+        background: rgba(0, 0, 0, 0.8);
         padding: 8px;
     }
 
     [data-testid="stPlotlyChart"] {
         box-shadow: 0 8px 22px rgba(0,0,0,0.15);
         border-radius: 12px;
-        background: white;
+        background: rgba(0, 0, 0, 0.8);
         padding: 8px;
     }
 
@@ -228,7 +228,7 @@ def apply_crypto_theme():
         box-shadow: 0 6px 18px rgba(0,0,0,0.12);
         border-radius: 12px;
         padding: 10px;
-        background: white;
+        background: rgba(0, 0, 0, 0.8);
     }
 
     /* Buttons with gradient */
@@ -268,9 +268,9 @@ def apply_crypto_theme():
                    ui-sans-serif, system-ui, -apple-system,
                    'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
       font-weight: 300;
-      background: rgba(255, 255, 255, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      color: #082F49;
+      background: rgba(0, 0, 0, 0.9);
+      border: 1px solid rgba(0, 0, 0, 0.3);
+      color: #ffffff;
       border-radius: 12px;
       padding: 14px 16px;
       margin: 12px 0;

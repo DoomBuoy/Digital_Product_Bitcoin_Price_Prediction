@@ -13,19 +13,19 @@ def landing_page():
     # Welcome message
     st.markdown("""
     <div style="
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(0, 0, 0, 0.9);
         padding: 2rem;
         border-radius: 20px;
         margin: 2rem 0;
         box-shadow: 0 10px 30px rgba(0,0,0,0.1);
         backdrop-filter: blur(15px);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+        border: 1px solid rgba(0, 0, 0, 0.3);
     ">
-        <h2 style="color: #2d3748; margin-bottom: 1rem;">Welcome to the Crypto Dashboard!</h2>
-        <p style="color: #4a5568; font-size: 1.1rem; line-height: 1.6;">
+        <h2 style="color: #ffffff; margin-bottom: 1rem;">Welcome to the Crypto Dashboard!</h2>
+        <p style="color: #e2e8f0; font-size: 1.1rem; line-height: 1.6;">
             Track live prices for Bitcoin - the top cryptocurrency in the market.
         </p>
-        <p style="color: #2d3748; font-weight: bold; margin-top: 1rem;">
+        <p style="color: #ffffff; font-weight: bold; margin-top: 1rem;">
             <strong>Click on Bitcoin below to view detailed analysis and predictions!</strong>
         </p>
     </div>
@@ -69,7 +69,7 @@ def landing_page():
         # Use the coin's actual color for the border and better styling
         card_html = f"""
         <div style="
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(0, 0, 0, 0.9);
             padding: 1.5rem;
             border-radius: 15px;
             border-left: 6px solid {coin['color']};
@@ -81,13 +81,13 @@ def landing_page():
             <h3 style="color: {coin['color']}; margin-bottom: 0.5rem;">
                 {coin['icon']} {coin['name']} ({coin['symbol']})
             </h3>
-            <h4 style="color: #2d3748; font-weight: bold; margin: 0.5rem 0;">
+            <h4 style="color: #ffffff; font-weight: bold; margin: 0.5rem 0;">
                 ${coin.get('current_price', 0):,.2f}
             </h4>
             <p style="color: {change_color}; font-weight: bold; margin: 0.5rem 0;">
                 {change_symbol} {price_change:.2f}%
             </p>
-            <p style="color: #4a5568; font-size: 0.9em; margin: 0;">
+            <p style="color: #e2e8f0; font-size: 0.9em; margin: 0;">
                 Market Cap: ${coin.get('market_cap', 0)/1e9:.1f}B
             </p>
         </div>

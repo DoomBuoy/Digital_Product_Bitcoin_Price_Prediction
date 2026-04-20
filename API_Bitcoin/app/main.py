@@ -35,12 +35,12 @@ def load_model():
     import __main__
     
     # Add all transformer functions to the main module namespace
+    # (Removed normalize_features to rely on Pipeline's native StandardScaler)
     __main__.calculate_circulating_supply = calculate_circulating_supply
     __main__.calculate_velocity = calculate_velocity
     __main__.calculate_ema_12d = calculate_ema_12d
     __main__.log_transform_features = log_transform_features
     __main__.extract_cyclical_day_of_week = extract_cyclical_day_of_week
-    __main__.normalize_features = normalize_features
     __main__.select_final_features = select_final_features
     
     try:
@@ -77,18 +77,15 @@ def manual_prediction_pipeline(data):
     This replicates the transformation steps manually
     """
     try:
-        # Apply all transformations in sequence
+        # Apply all transformations in sequence (normalize_features removed)
         data = calculate_circulating_supply(data)
         data = calculate_velocity(data)  
         data = calculate_ema_12d(data)
         data = log_transform_features(data)
         data = extract_cyclical_day_of_week(data)
-        data = normalize_features(data)
         data = select_final_features(data)
         
         # For now, return a mock prediction since we don't have access to the actual model
-        # In a real scenario, you would need to extract and save just the final model
-        # (e.g., XGBoost, RandomForest) separately from the preprocessing pipeline
         mock_prediction = np.random.uniform(30000, 45000, 1)[0]
         print("Using manual pipeline with mock prediction")
         return mock_prediction
@@ -166,25 +163,6 @@ def extract_cyclical_day_of_week(X):
     
     return X_copy
 
-def normalize_features(X):
-    X_copy = X.copy()
-    
-    # Features that should be normalized
-    numerical_features = ['open_log', 'low_log', 'close_log', 'volume_log', 
-                         'marketCap_log', 'circulatingSupply', 'velocity_log', 'ema_12d_log']
-    
-    # Filter to only include columns that exist in the dataframe
-    cols_to_scale = [col for col in numerical_features if col in X_copy.columns]
-    
-    if cols_to_scale:  # Only proceed if there are columns to scale
-        # Create a StandardScaler instance
-        scaler = StandardScaler()
-        
-        # Fit and transform the selected columns
-        X_copy[cols_to_scale] = scaler.fit_transform(X_copy[cols_to_scale])
-    
-    return X_copy
-
 def select_final_features(X):
     X_copy = X.copy()
     
@@ -208,7 +186,7 @@ def select_final_features(X):
 def generate_test_data(rows=5):
     """Generate sample data to test the pipeline"""
     base_date = datetime(2023, 1, 1)
-    dates = [base_date + timedelta(days=i) for i in range(rows)]  # Changed from 'for i in rows'
+    dates = [base_date + timedelta(days=i) for i in range(rows)]
     
     test_data = pd.DataFrame({
         'timeOpen': dates,
@@ -228,21 +206,24 @@ def generate_test_data(rows=5):
     return test_data
 
 def generate_data_for_date(target_date: datetime) -> pd.DataFrame:
-    """Generate realistic Bitcoin data for a specific date"""
-    # Create data for the target date
+    """Generate realistic Bitcoin data (15 days history) for fallback EMA calculation"""
+    rows = 15
+    base_date = target_date - timedelta(days=rows-1)
+    dates = [base_date + timedelta(days=i) for i in range(rows)]
+    
     test_data = pd.DataFrame({
-        'timeOpen': [target_date],
-        'timeClose': [target_date + timedelta(hours=23, minutes=59)],
-        'timeHigh': [target_date + timedelta(hours=12)],
-        'timeLow': [target_date + timedelta(hours=4)],
-        'open': np.random.uniform(30000, 35000, 1),
-        'high': np.random.uniform(32000, 38000, 1),
-        'low': np.random.uniform(28000, 31000, 1),
-        'close': np.random.uniform(30000, 36000, 1),
-        'volume': np.random.uniform(20000000, 50000000, 1),
-        'marketCap': np.random.uniform(500000000000, 700000000000, 1),
-        'name': ['Bitcoin'],
-        'timestamp': [target_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')]
+        'timeOpen': dates,
+        'timeClose': [d + timedelta(hours=23, minutes=59) for d in dates],
+        'timeHigh': [d + timedelta(hours=12) for d in dates],
+        'timeLow': [d + timedelta(hours=4) for d in dates],
+        'open': np.random.uniform(60000, 65000, rows),
+        'high': np.random.uniform(62000, 67000, rows),
+        'low': np.random.uniform(58000, 63000, rows),
+        'close': np.random.uniform(60000, 66000, rows),
+        'volume': np.random.uniform(20000000000, 50000000000, rows),
+        'marketCap': np.random.uniform(1100000000000, 1300000000000, rows),
+        'name': ['Bitcoin'] * rows,
+        'timestamp': [d.strftime('%Y-%m-%dT%H:%M:%S.000Z') for d in dates]
     })
     
     return test_data
@@ -257,7 +238,6 @@ def fetch_market_cap_from_coingecko(target_date: datetime) -> Optional[float]:
         url = f"https://api.coingecko.com/api/v3/coins/bitcoin/history?date={coingecko_date}"
         
         print(f"🔄 Fetching market cap from CoinGecko for date: {coingecko_date}")
-        print(f"🌐 CoinGecko URL: {url}")
         
         response = requests.get(url, timeout=15)
         
@@ -286,20 +266,17 @@ def fetch_market_cap_from_coingecko(target_date: datetime) -> Optional[float]:
 
 def fetch_bitcoin_data_from_api(target_date: datetime) -> pd.DataFrame:
     """
-    Fetch real Bitcoin data from Kraken API and market cap from CoinGecko API
+    Fetch 15 days of historical Bitcoin data from Kraken API to calculate accurate EMAs,
+    and market cap from CoinGecko API for the target date.
     """
     try:
-        # Convert target date to timestamp for Kraken API
-        target_timestamp = int(target_date.timestamp())
+        # Get timestamp for 16 days ago to ensure we have enough history for the 12-day EMA
+        start_date = target_date - timedelta(days=16)
+        start_timestamp = int(start_date.timestamp())
         
         # Kraken API call - OHLC data for BTC/USD with daily interval
-        kraken_url = f"https://api.kraken.com/0/public/OHLC?pair=XXBTZUSD&interval=1440&since={target_timestamp}"
-        
+        kraken_url = f"https://api.kraken.com/0/public/OHLC?pair=XXBTZUSD&interval=1440&since={start_timestamp}"
         kraken_response = requests.get(kraken_url, timeout=15)
-        
-        # Initialize variables
-        open_price = high_price = low_price = close_price = volume = None
-        data_date = target_date
         
         # Fetch OHLC data from Kraken
         if kraken_response.status_code == 200:
@@ -309,63 +286,51 @@ def fetch_bitcoin_data_from_api(target_date: datetime) -> pd.DataFrame:
                 ohlc_data = kraken_data["result"].get("XXBTZUSD", [])
                 
                 if ohlc_data:
-                    latest_ohlc = ohlc_data[-1]  # Last entry is most recent
+                    historical_rows = []
+                    # Get up to the last 15 valid rows
+                    for row in ohlc_data[-15:]:
+                        timestamp = int(row[0])
+                        row_date = datetime.fromtimestamp(timestamp)
+                        
+                        open_price = float(row[1])
+                        high_price = float(row[2])
+                        low_price = float(row[3])
+                        close_price = float(row[4])
+                        volume = float(row[6])
+                        
+                        # Estimate market cap for historical rows to save API calls
+                        estimated_circulating_supply = 19700000
+                        market_cap = close_price * estimated_circulating_supply
+                        
+                        historical_rows.append({
+                            'timeOpen': row_date,
+                            'timeClose': row_date + timedelta(hours=23, minutes=59),
+                            'timeHigh': row_date + timedelta(hours=12),
+                            'timeLow': row_date + timedelta(hours=4),
+                            'open': open_price,
+                            'high': high_price,
+                            'low': low_price,
+                            'close': close_price,
+                            'volume': volume,
+                            'marketCap': market_cap,
+                            'name': 'Bitcoin',
+                            'timestamp': row_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')
+                        })
                     
-                    # Kraken OHLC format: [time, open, high, low, close, vwap, volume, count]
-                    timestamp = int(latest_ohlc[0])
-                    open_price = float(latest_ohlc[1])
-                    high_price = float(latest_ohlc[2])
-                    low_price = float(latest_ohlc[3])
-                    close_price = float(latest_ohlc[4])
-                    volume = float(latest_ohlc[6])
+                    # Overwrite the last row's market cap using CoinGecko's accurate value
+                    real_market_cap = fetch_market_cap_from_coingecko(target_date)
+                    if real_market_cap:
+                        historical_rows[-1]['marketCap'] = real_market_cap
+                        
+                    print(f"✅ Successfully fetched 15 days of historical data from Kraken API")
+                    return pd.DataFrame(historical_rows)
                     
-                    data_date = datetime.fromtimestamp(timestamp)
-                    print("✅ Successfully fetched OHLC data from Kraken API")
-        
-        # Fetch market cap from CoinGecko API for the specific date
-        market_cap = fetch_market_cap_from_coingecko(target_date)
-        
-        # Use fallback values if APIs failed
-        if open_price is None or high_price is None or low_price is None or close_price is None or volume is None:
-            print("⚠️ Some Kraken data missing, using estimated values")
-            # Use estimated values based on current market conditions
-            estimated_close = 67000.0  # Default close price
-            open_price = open_price or estimated_close * 0.999
-            high_price = high_price or estimated_close * 1.015
-            low_price = low_price or estimated_close * 0.985
-            close_price = close_price or estimated_close
-            volume = volume or 25000.0
-        
-        if market_cap is None:
-            print("⚠️ CoinGecko market cap not available, calculating estimate")
-            estimated_circulating_supply = 19700000
-            market_cap = close_price * estimated_circulating_supply
-        
-        # Create DataFrame with combined API data
-        real_data = pd.DataFrame({
-            'timeOpen': [data_date],
-            'timeClose': [data_date + timedelta(hours=23, minutes=59)],
-            'timeHigh': [data_date + timedelta(hours=12)],
-            'timeLow': [data_date + timedelta(hours=4)],
-            'open': [open_price],
-            'high': [high_price],
-            'low': [low_price],
-            'close': [close_price],
-            'volume': [volume],
-            'marketCap': [market_cap],
-            'name': ['Bitcoin'],
-            'timestamp': [data_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')]
-        })
-        
-        print("✅ Successfully combined Kraken OHLC and CoinGecko market cap data")
-        return real_data
-                
     except requests.RequestException as e:
         print(f"⚠️ API request failed: {e}, using fallback data")
     except Exception as e:
         print(f"⚠️ Error processing API data: {e}, using fallback data")
     
-    # Fallback to generated data
+    # Fallback to generated data if API completely fails
     return generate_data_for_date(target_date)
 
 def format_bitcoin_features(
@@ -378,50 +343,34 @@ def format_bitcoin_features(
     market_cap: Optional[float] = None
 ) -> pd.DataFrame:
     """
-    Format Bitcoin features for prediction, fetching from Kraken API if not provided
+    Format Bitcoin features for prediction, fetching from Kraken API if not provided.
+    Applies user-provided inputs strictly to the TARGET date, keeping history intact for EMA.
     """
     try:
         # Parse the input date
         target_date = datetime.strptime(date, "%Y-%m-%d")
-        today = datetime.now().date()
-        target_date_only = target_date.date()
         
-        # Check if we need to fetch real-time data
-        if target_date_only >= today or any(param is None for param in [open_price, high_price, low_price, close_price, volume, market_cap]):
-            print(f"🔄 Fetching Bitcoin data from Kraken API for {date}")
-            api_data = fetch_bitcoin_data_from_api(target_date)
+        # Always fetch historical data (15 rows) to compute EMA properly
+        print(f"🔄 Fetching Bitcoin data history (15 days) ending at {date}")
+        api_data = fetch_bitcoin_data_from_api(target_date)
+        
+        # Apply user overrides to the VERY LAST row (the target prediction date)
+        last_idx = api_data.index[-1]
+        
+        if open_price is not None:
+            api_data.at[last_idx, 'open'] = float(open_price)
+        if high_price is not None:
+            api_data.at[last_idx, 'high'] = float(high_price)
+        if low_price is not None:
+            api_data.at[last_idx, 'low'] = float(low_price)
+        if close_price is not None:
+            api_data.at[last_idx, 'close'] = float(close_price)
+        if volume is not None:
+            api_data.at[last_idx, 'volume'] = float(volume)
+        if market_cap is not None:
+            api_data.at[last_idx, 'marketCap'] = float(market_cap)
             
-            # Use API data as fallback for missing parameters
-            if open_price is None:
-                open_price = float(api_data['open'].iloc[0])
-            if high_price is None:
-                high_price = float(api_data['high'].iloc[0])
-            if low_price is None:
-                low_price = float(api_data['low'].iloc[0])
-            if close_price is None:
-                close_price = float(api_data['close'].iloc[0])
-            if volume is None:
-                volume = float(api_data['volume'].iloc[0])
-            if market_cap is None:
-                market_cap = float(api_data['marketCap'].iloc[0])
-        
-        # Create formatted DataFrame
-        formatted_data = pd.DataFrame({
-            'timeOpen': [target_date],
-            'timeClose': [target_date + timedelta(hours=23, minutes=59)],
-            'timeHigh': [target_date + timedelta(hours=12)],
-            'timeLow': [target_date + timedelta(hours=4)],
-            'open': [open_price],
-            'high': [high_price],
-            'low': [low_price],
-            'close': [close_price],
-            'volume': [volume],
-            'marketCap': [market_cap],
-            'name': ['Bitcoin'],
-            'timestamp': [target_date.strftime('%Y-%m-%dT%H:%M:%S.000Z')]
-        })
-        
-        return formatted_data
+        return api_data
         
     except ValueError as e:
         raise ValueError(f"Invalid date format: {e}")
@@ -443,8 +392,6 @@ def apply_transformations(data: pd.DataFrame) -> pd.DataFrame:
     
     return transformed_data
 
-
-# Load the model
 
 @app.get("/")
 async def root() -> Dict[str, Any]:
@@ -532,7 +479,7 @@ async def predict_bitcoin_price(
             date = datetime.now().strftime("%Y-%m-%d")
             print(f"🕒 No date provided, using today's date: {date}")
         
-        # Get formatted data using Kraken + CoinGecko API integration
+        # Get 15 days formatted data using Kraken + CoinGecko API integration
         test_data = format_bitcoin_features(
             date=date,
             open_price=open_price,
@@ -553,8 +500,10 @@ async def predict_bitcoin_price(
         # Make prediction using available method
         if loaded_pipeline is not None:
             try:
+                # Provide the whole history to the model
                 prediction = loaded_pipeline.predict(processed_data)
-                predicted_high = float(prediction[0]) if hasattr(prediction, '__iter__') else float(prediction)
+                # Extact ONLY the prediction for the last row (the target date)
+                predicted_high = float(prediction[-1]) if hasattr(prediction, '__iter__') else float(prediction)
             except Exception as model_error:
                 print(f"Pipeline prediction failed: {model_error}")
                 # Fallback prediction using the manual pipeline
@@ -662,4 +611,3 @@ async def get_current_bitcoin_data():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
-#

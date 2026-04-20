@@ -225,22 +225,18 @@ poetry run fastapi dev app/main.py
 python test.py
 ```
 
-**Model Loading Tests** (`test_model_loading.py`):
-```bash
-# Test model loading and prediction functionality
-python test_model_loading.py
+
 ```
 
 **API Integration Tests**:
 ```bash
-# Test Kraken API integration
-python test_kraken_api.py
+
 
 # Test CoinGecko API integration
+
 python test_coingecko_api.py
 
-# Test feature pipeline
-python test_feature_pipeline.py
+
 ```
 
 ### Test Coverage Includes:
